@@ -33,8 +33,13 @@ docs/               # Testing standards, guides, patterns
 - Output: ~15 lines, ~70 tokens
 
 **fsm_observer** - Export FSM state to Moku registers (no tests yet)
-**volo_voltage_pkg** - Voltage conversion utilities (no tests yet)
+**volo_voltage_pkg** - Voltage conversion utilities (legacy, being replaced)
 **volo_bram_loader** - BRAM initialization (no tests yet)
+
+**Voltage Type System (Phase 4 - Design finalized)**
+- forge_voltage_3v3_pkg (0-3.3V), forge_voltage_5v0_pkg (0-5V), forge_voltage_5v_bipolar_pkg (±5V)
+- Function-based type safety, Verilog compatible, Python mirror classes
+- See: docs/migration/VOLTAGE_TYPE_SYSTEM_DESIGN.md
 
 ## Testing (NEW!)
 

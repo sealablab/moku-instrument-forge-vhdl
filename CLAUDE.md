@@ -208,12 +208,17 @@ end entity;
 - Dependencies: volo_voltage_pkg
 - File: `vhdl/packages/volo_lut_pkg.vhd`
 
-**volo_voltage_pkg** (⚠️ Pending redesign)
+**volo_voltage_pkg** (⚠️ Being replaced, see Phase 4)
 - Function: Voltage conversion utilities
-- Current: Hardcoded ±5V
-- Planned: 3-range system (3.3V, 5V, ±5V)
-- Tests: None yet
-- File: `vhdl/packages/volo_voltage_pkg.vhd`
+- Current: Hardcoded ±5V (legacy)
+- Replacement: 3 explicit packages (forge_voltage_*_pkg.vhd)
+  - `forge_voltage_3v3_pkg` - 0-3.3V unipolar (TTL/digital)
+  - `forge_voltage_5v0_pkg` - 0-5.0V unipolar (supply)
+  - `forge_voltage_5v_bipolar_pkg` - ±5.0V bipolar (Moku DAC/ADC)
+- Design: See `docs/migration/VOLTAGE_TYPE_SYSTEM_DESIGN.md`
+- Python mirror: See `docs/migration/voltage_types_reference.py`
+- Tests: Will be added in Phase 4
+- File: `vhdl/packages/volo_voltage_pkg.vhd` (legacy)
 
 **volo_common_pkg**
 - Function: Common constants and types
@@ -287,6 +292,84 @@ Quick summary:
 **Separation:**
 - forge/ = Comprehensive, auto-generated, YAML-driven
 - forge-vhdl = Pragmatic, hand-written, day-to-day
+
+---
+
+## Voltage Type System (Phase 4)
+
+### Design Philosophy
+
+**Problem:** Prevent voltage domain mismatches (e.g., 3.3V TTL signal going to ±5V DAC).
+
+**Solution:** Function-based type safety via explicit package selection.
+
+### Three Voltage Domains
+
+**1. forge_voltage_3v3_pkg** - 0-3.3V unipolar
+- Use for: TTL, GPIO, digital glitch, 3.3V probe interfaces
+- Scale: 0V → 0x0000, 3.3V → 0x7FFF
+
+**2. forge_voltage_5v0_pkg** - 0-5.0V unipolar
+- Use for: Sensor supply, 0-5V DAC outputs
+- Scale: 0V → 0x0000, 5.0V → 0x7FFF
+
+**3. forge_voltage_5v_bipolar_pkg** - ±5.0V bipolar
+- Use for: Moku DAC/ADC, AC signals, most analog work
+- Scale: -5V → 0x8000, 0V → 0x0000, +5V → 0x7FFF
+
+### Usage Pattern (VHDL)
+
+```vhdl
+-- Declare domain by package selection
+use work.forge_voltage_3v3_pkg.all;
+
+signal trigger_volts : real := 2.5;  -- In 3.3V domain context
+signal trigger_digital : signed(15 downto 0);
+
+-- Explicit conversion (auditable)
+trigger_digital <= to_digital(trigger_volts);
+
+-- Runtime validation
+assert is_valid(trigger_volts)
+    report "Trigger voltage out of range" severity error;
+```
+
+### Python Mirror
+
+```python
+from voltage_types import Voltage_3V3
+
+# Type-safe assignment (range validated)
+trigger = Voltage_3V3(2.5)
+
+# Type checker catches domain mismatches
+# trigger = Voltage_5V_Bipolar(-3.0)  # mypy error!
+
+# Explicit conversion to digital
+trigger_digital = trigger.to_digital()  # int for register write
+```
+
+### Design Rationale
+
+- **Verilog compatible:** Uses standard types only (no records/physical types)
+- **Explicit domain:** Package name declares voltage range
+- **Function-based:** Follows existing `volo_voltage_pkg` pattern
+- **80% type safety:** Explicit packages + runtime validation (vs 100% with records)
+- **Production-proven:** Based on EZ-EMFI patterns
+
+**Trade-off:** No compile-time type safety (VHDL limitation for Verilog compatibility), but explicit package selection + runtime checks prevent most errors.
+
+### Documentation
+
+- **Design doc:** `docs/migration/VOLTAGE_TYPE_SYSTEM_DESIGN.md` (comprehensive rationale)
+- **Python reference:** `docs/migration/voltage_types_reference.py` (implementation)
+- **Relationship:** Independent from forge/basic-app-datatypes (different domains)
+
+### Status
+
+- Design finalized (2025-11-04)
+- Implementation: Phase 4 (TBD)
+- Will replace legacy `volo_voltage_pkg.vhd`
 
 ---
 
