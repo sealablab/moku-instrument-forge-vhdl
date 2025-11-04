@@ -1,30 +1,53 @@
 # moku-instrument-forge-vhdl
 
-Shared VHDL utilities for Moku custom instrument development.
+Shared VHDL utilities for Moku custom instrument development with CocoTB progressive testing.
 
 ## Quick Reference
 
-**What:** Reusable VHDL components (packages, debugging tools, loaders, utilities)
+**What:** Reusable VHDL components with token-efficient CocoTB tests
 **Use:** Git submodule in forge-based projects
-**Test:** CocotB + pytest (`pytest tests/`)
+**Test:** CocoTB + GHDL filter (P1 tests <20 lines, 98% noise reduction)
 
 ## Structure
 
 ```
 vhdl/
-├── packages/       # volo_common_pkg, volo_voltage_pkg, volo_lut_pkg
-├── debugging/      # fsm_observer (real-time FSM state monitoring)
-├── loader/         # volo_bram_loader (BRAM initialization)
-└── utilities/      # volo_clk_divider, volo_voltage_threshold_trigger_core
-tests/              # CocotB tests
+├── packages/       # volo_lut_pkg (+ tests), volo_voltage_pkg, volo_common_pkg
+├── utilities/      # forge_util_clk_divider (+ tests), threshold trigger
+├── debugging/      # fsm_observer (real-time FSM monitoring)
+└── loader/         # volo_bram_loader (BRAM initialization)
+
+scripts/            # ghdl_output_filter.py (THE secret weapon)
+tests/              # CocoTB progressive testing infrastructure
+docs/               # Testing standards, guides, patterns
 ```
 
-## Key Components
+## Key Components (With CocoTB Tests)
 
-**fsm_observer.vhd** - Export FSM state to Moku registers for oscilloscope debugging
-**volo_voltage_pkg.vhd** - Voltage conversion and scaling utilities
-**volo_bram_loader.vhd** - BRAM initialization from external sources
-**volo_clk_divider.vhd** - Programmable clock divider
+**forge_util_clk_divider** - Programmable clock divider
+- P1 tests: 3 (reset, divide-by-2, enable)
+- Output: ~20 lines, ~50 tokens
+
+**volo_lut_pkg** - Look-up table utilities
+- P1 tests: 4 (constants, conversions, index, boundary)
+- Output: ~15 lines, ~70 tokens
+
+**fsm_observer** - Export FSM state to Moku registers (no tests yet)
+**volo_voltage_pkg** - Voltage conversion utilities (no tests yet)
+**volo_bram_loader** - BRAM initialization (no tests yet)
+
+## Testing (NEW!)
+
+```bash
+# Run P1 tests (LLM-optimized, <20 lines)
+uv run python tests/run.py forge_util_clk_divider
+
+# Run P2 tests (full validation)
+TEST_LEVEL=P2_INTERMEDIATE uv run python tests/run.py forge_util_clk_divider
+
+# List all tests
+uv run python tests/run.py --list
+```
 
 ## Integration Pattern
 
@@ -34,28 +57,22 @@ Used as submodule in `moku-instrument-forge-mono-repo`:
 git submodule add https://github.com/sealablab/moku-instrument-forge-vhdl.git libs/forge-vhdl
 ```
 
-VHDL files compiled with GHDL via CocotB test infrastructure.
+VHDL files compiled with GHDL via CocoTB test infrastructure.
 
 ## Development
 
 ```bash
-uv sync              # Install dependencies
-pytest               # Run all tests
-pytest tests/test_volo_voltage_pkg.py  # Run specific test
+uv sync                          # Install dependencies
+uv run python tests/run.py --all # Run all tests (P1)
 ```
-
-## Related Projects
-
-- **moku-instrument-forge** - Code generation (YAML → VHDL)
-- **moku-instrument-forge-mono-repo** - Monorepo for probe drivers
-- **moku-models** - Platform data models
 
 ## For More Details
 
-See README.md for complete documentation.
+See CLAUDE.md for testing standards, component patterns, design rationale.
+See docs/ for comprehensive testing guides.
 
 ---
 
-**Version:** 1.0.0
+**Version:** 1.1.0 (added CocoTB testing)
 **License:** MIT
 **Origin:** Extracted from EZ-EMFI project
