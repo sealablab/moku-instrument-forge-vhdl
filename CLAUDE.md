@@ -123,6 +123,69 @@ volo_voltage_pkg.vhd                 # Voltage package (legacy name kept)
 
 ---
 
+## VHDL Coding Standards
+
+### Mandatory Rules
+
+All new forge-vhdl components MUST follow these rules:
+
+**FSM States:** Use `std_logic_vector`, not enums (Verilog compatibility)
+**Port Order:** clk, rst_n, clk_en, enable, data, status
+**Signal Naming:** Universal prefixes (`ctrl_`, `cfg_`, `stat_`, `dbg_`)
+**Reset Hierarchy:** rst_n > clk_en > enable
+
+### Why These Rules?
+
+1. **Verilog Compatibility**: VHDL enums don't translate to Verilog
+2. **Synthesis Predictability**: Explicit encoding prevents synthesis surprises
+3. **Code Consistency**: Uniform naming enables instant comprehension
+4. **Safety**: Reset hierarchy prevents unsafe states
+
+### Documentation
+
+- **Complete Guide:** `docs/VHDL_CODING_STANDARDS.md` (~600 lines)
+- **Quick Reference:** `docs/VHDL_QUICK_REF.md` (templates & checklists)
+
+### Example: FSM State Declaration
+
+```vhdl
+-- ✅ CORRECT (Verilog-compatible)
+constant STATE_IDLE   : std_logic_vector(1 downto 0) := "00";
+constant STATE_ARMED  : std_logic_vector(1 downto 0) := "01";
+signal state : std_logic_vector(1 downto 0);
+
+-- ❌ FORBIDDEN (No Verilog translation)
+type state_t is (IDLE, ARMED);  -- DO NOT USE!
+signal state : state_t;
+```
+
+### Example: Port Order
+
+```vhdl
+entity forge_util_example is
+    port (
+        -- 1. Clock & Reset
+        clk    : in std_logic;
+        rst_n  : in std_logic;  -- Active-low
+
+        -- 2. Control
+        clk_en : in std_logic;
+        enable : in std_logic;
+
+        -- 3. Data inputs
+        data_in : in std_logic_vector(15 downto 0);
+
+        -- 4. Data outputs
+        data_out : out std_logic_vector(15 downto 0);
+
+        -- 5. Status
+        busy : out std_logic
+    );
+end entity;
+```
+
+---
+
 ## Component Catalog
 
 ### Utilities (forge_util_*)
