@@ -121,3 +121,16 @@ This library is part of the Moku custom instrument ecosystem. When adding new ut
 - [moku-instrument-forge](https://github.com/sealablab/moku-instrument-forge) - Code generation framework
 - [moku-instrument-forge-mono-repo](https://github.com/sealablab/moku-instrument-forge-mono-repo) - Example monorepo structure
 - [moku-models](https://github.com/sealablab/moku-models) - Platform data models
+
+## 🤖 AI Agent Integration
+
+This repository provides documentation for AI agents:
+
+- **llms.txt** - Quick reference (Tier 1): Component catalog, usage patterns, integration guide
+- **Source code** - Implementation (Tier 3): VHDL implementations with inline documentation
+
+**Note:** This library does not include a CLAUDE.md file as the VHDL components are straightforward utilities with minimal design complexity.
+
+---
+
+**Last Updated:** 2025-11-04 10:35 MST
