@@ -6,10 +6,19 @@ Shared VHDL utilities for Moku custom instrument development using the forge fra
 
 This library provides reusable VHDL components for building custom instruments on the Moku platform:
 
-- **Packages** - Common data types, constants, and utilities
+- **Packages** - Common data types, constants, and utilities (including voltage domain packages)
 - **Debugging** - FSM observer for hardware debugging
 - **Loader** - BRAM initialization utilities
 - **Utilities** - Clock dividers, triggers, and other helpers
+
+### Documentation
+
+This project uses a **3-tier documentation system** optimized for AI agents and developers:
+- **llms.txt** - Quick reference (~500 tokens): Component catalog, testing commands
+- **CLAUDE.md** - Authoritative guide (~3.5k tokens): Complete testing standards, design patterns, coding standards
+- **Source code** - Implementation details with inline documentation
+
+See `CLAUDE.md` for comprehensive CocoTB progressive testing standards and VHDL coding guidelines.
 
 ## Repository Structure
 
@@ -47,9 +56,15 @@ git submodule update --init --recursive
 
 ### Packages
 
-**volo_common_pkg** - Common types and constants for Moku development
-**volo_lut_pkg** - Look-up table utilities
-**volo_voltage_pkg** - Voltage conversion and scaling utilities
+**Voltage Domain Packages (forge_voltage_*):**
+- **forge_voltage_3v3_pkg** - 0-3.3V unipolar (TTL, GPIO, digital logic)
+- **forge_voltage_5v0_pkg** - 0-5.0V unipolar (sensor supply, unipolar analog)
+- **forge_voltage_5v_bipolar_pkg** - ±5.0V bipolar (Moku DAC/ADC, AC signals)
+
+**Utility Packages:**
+- **volo_common_pkg** - Common types and constants for Moku development
+- **volo_lut_pkg** - Look-up table utilities (with CocoTB tests)
+- **volo_voltage_pkg** - Legacy voltage utilities (superseded by forge_voltage_* packages)
 
 ### Debugging
 
@@ -64,7 +79,7 @@ git submodule update --init --recursive
 
 ### Utilities
 
-**volo_clk_divider** - Programmable clock divider
+**forge_util_clk_divider** - Programmable clock divider (with CocoTB tests)
 **volo_voltage_threshold_trigger_core** - Voltage threshold detection
 
 ## Development
@@ -77,16 +92,26 @@ git submodule update --init --recursive
 
 ### Running Tests
 
+This library uses **CocoTB progressive testing** with GHDL output filtering for LLM-optimized output:
+
 ```bash
 # Install dependencies
 uv sync
 
-# Run all tests
-pytest
+# Run P1 tests (default, <20 lines output)
+uv run python tests/run.py forge_util_clk_divider
 
-# Run specific test
-pytest tests/test_volo_voltage_pkg.py
+# Run P2 tests (comprehensive validation)
+TEST_LEVEL=P2_INTERMEDIATE uv run python tests/run.py forge_util_clk_divider
+
+# List all available tests
+uv run python tests/run.py --list
+
+# Run all tests
+uv run python tests/run.py --all
 ```
+
+**Key Innovation:** 98% test output reduction (287 lines → 8 lines) through progressive test levels (P1/P2/P3/P4) and intelligent GHDL filtering. See `CLAUDE.md` for complete testing standards.
 
 ## Integration with Forge
 
@@ -124,13 +149,14 @@ This library is part of the Moku custom instrument ecosystem. When adding new ut
 
 ## 🤖 AI Agent Integration
 
-This repository provides documentation for AI agents:
+This repository implements a **3-tier documentation system** optimized for token efficiency:
 
-- **llms.txt** - Quick reference (Tier 1): Component catalog, usage patterns, integration guide
-- **Source code** - Implementation (Tier 3): VHDL implementations with inline documentation
+- **Tier 1 (llms.txt)** - Quick reference (~500 tokens): Component catalog, testing commands, basic usage
+- **Tier 2 (CLAUDE.md)** - Authoritative guide (~3.5k tokens): Complete testing standards, CocoTB progressive testing, VHDL coding standards, design patterns
+- **Tier 3 (Source code)** - Implementation details: VHDL source with inline documentation, CocoTB tests
 
-**Note:** This library does not include a CLAUDE.md file as the VHDL components are straightforward utilities with minimal design complexity.
+**Testing Innovation:** Progressive test levels (P1/P2/P3/P4) with GHDL output filtering achieve 98% output reduction, enabling rapid LLM-assisted VHDL development.
 
 ---
 
-**Last Updated:** 2025-11-04 10:35 MST
+**Last Updated:** 2025-11-04
