@@ -124,9 +124,16 @@ This library is designed to work alongside `moku-instrument-forge`:
 
 ## Version History
 
+**v2.1.0** - Complete forge-vhdl Unification (2025-11-04)
+- Complete volo→forge namespace migration (5 components renamed)
+- Intentional removal of legacy volo_voltage_pkg (fail-fast design)
+- 3-tier documentation system (llms.txt, CLAUDE.md)
+- Production-ready voltage type system (3v3, 5v0, 5v_bipolar)
+- CocoTB progressive testing with 98% output reduction
+
 **v1.0.0** - Initial release
 - Extracted from EZ-EMFI project
-- Includes volo utilities and fsm_observer
+- Includes forge utilities and fsm_observer
 - CocotB test infrastructure
 
 ## License
