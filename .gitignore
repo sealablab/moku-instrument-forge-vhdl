@@ -23,3 +23,6 @@ work-obj08.cf
 # OS
 .DS_Store
 Thumbs.db
+
+# Migration docs (not tracked in submodule)
+.migration/

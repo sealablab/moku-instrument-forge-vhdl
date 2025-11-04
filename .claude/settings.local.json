@@ -1,8 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "Bash(find:*)",
-      "Bash(git add:*)"
+      "Bash(uv run python:*)"
     ],
     "deny": [],
     "ask": []
