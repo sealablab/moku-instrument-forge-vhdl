@@ -1,5 +1,5 @@
 """
-Test constants and utilities for volo_lut_pkg tests
+Test constants and utilities for forge_lut_pkg tests
 
 Contains test values, expected results, and error messages for
 progressive testing (P1/P2/P3).
@@ -84,7 +84,7 @@ def voltage_to_digital_approx(voltage):
     """
     Approximate voltage_to_digital conversion for test validation
 
-    Matches volo_voltage_pkg.vhd formula:
+    Matches forge_voltage_*_pkg.vhd formula (legacy formula):
     digital = round(voltage / 5.0 * 32767)
     """
     if voltage > 5.0:

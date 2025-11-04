@@ -212,8 +212,8 @@ uv run python tests/run.py --list
 forge_util_clk_divider.vhd           # Programmable clock divider
 forge_debug_fsm_observer.vhd         # FSM state observer (future)
 forge_loader_bram.vhd                # BRAM initialization (future)
-volo_lut_pkg.vhd                     # LUT package (legacy name kept)
-volo_voltage_pkg.vhd                 # Voltage package (legacy name kept)
+forge_lut_pkg.vhd                    # LUT package
+forge_common_pkg.vhd                 # Common types and constants
 ```
 
 ---
@@ -371,13 +371,12 @@ enable = int(dut.enable.value)  # Returns 0 or 1
 
 ### Packages
 
-**volo_lut_pkg**
+**forge_lut_pkg**
 - Function: Look-up table utilities
 - Exports: Voltage/index conversion functions, LUT constants
 - Tests: 4 P1, 4 P2, 1 P3
 - Use case: Voltage discretization, LUT-based calculations
-- Dependencies: volo_voltage_pkg
-- File: `vhdl/packages/volo_lut_pkg.vhd`
+- File: `vhdl/packages/forge_lut_pkg.vhd`
 
 **forge_voltage_3v3_pkg**
 - Function: 0-3.3V unipolar voltage domain utilities
@@ -404,16 +403,11 @@ enable = int(dut.enable.value)  # Returns 0 or 1
 **Complete design doc:** `.migration/VOLTAGE_TYPE_SYSTEM_DESIGN.md`
 **Python mirror:** `.migration/voltage_types_reference.py`
 
-**volo_voltage_pkg** (⚠️ Legacy - use forge_voltage_* packages instead)
-- Function: Hardcoded ±5V voltage conversion utilities
-- Status: Superseded by explicit domain packages above
-- File: `vhdl/packages/volo_voltage_pkg.vhd` (kept for backward compatibility)
-
-**volo_common_pkg**
+**forge_common_pkg**
 - Function: Common constants and types
 - Exports: VOLO_READY control scheme, BRAM loader protocol
 - Tests: None yet
-- File: `vhdl/packages/volo_common_pkg.vhd`
+- File: `vhdl/packages/forge_common_pkg.vhd`
 
 ### Debugging (forge_debug_*)
 
@@ -425,10 +419,10 @@ enable = int(dut.enable.value)  # Returns 0 or 1
 
 ### Loaders (forge_loader_*)
 
-**volo_bram_loader** (no tests yet)
+**forge_bram_loader** (no tests yet)
 - Function: BRAM initialization from external sources
 - Use case: LUT loading, configuration data
-- File: `vhdl/loader/volo_bram_loader.vhd`
+- File: `vhdl/loader/forge_bram_loader.vhd`
 
 ---
 
@@ -642,14 +636,14 @@ class ForgeUtilClkDividerTests(TestBase):
 
 ### Pattern 2: Package Test (Needs Wrapper)
 
-See `test_volo_lut_pkg_progressive.py` + `volo_lut_pkg_tb_wrapper.vhd`.
+See `test_forge_lut_pkg_progressive.py` + `forge_lut_pkg_tb_wrapper.vhd`.
 
 ```vhdl
 -- Wrapper entity (packages can't be top-level)
-entity volo_lut_pkg_tb_wrapper is
+entity forge_lut_pkg_tb_wrapper is
 end entity;
 
-architecture tb of volo_lut_pkg_tb_wrapper is
+architecture tb of forge_lut_pkg_tb_wrapper is
     -- Expose package functions/constants as signals
     signal test_constant : std_logic_vector(15 downto 0) := PACKAGE_CONSTANT;
 end architecture;

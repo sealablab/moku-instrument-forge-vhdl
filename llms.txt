@@ -12,10 +12,10 @@ Shared VHDL utilities for Moku custom instrument development with CocoTB progres
 
 ```
 vhdl/
-├── packages/       # forge_voltage_*_pkg (+ tests), volo_lut_pkg (+ tests), volo_common_pkg
+├── packages/       # forge_voltage_*_pkg (+ tests), forge_lut_pkg (+ tests), forge_common_pkg
 ├── utilities/      # forge_util_clk_divider (+ tests), threshold trigger
 ├── debugging/      # fsm_observer (real-time FSM monitoring)
-└── loader/         # volo_bram_loader (BRAM initialization)
+└── loader/         # forge_bram_loader (BRAM initialization)
 
 scripts/            # ghdl_output_filter.py (THE secret weapon)
 tests/              # CocoTB progressive testing infrastructure
@@ -28,7 +28,7 @@ docs/               # Testing standards, guides, patterns
 - P1 tests: 3 (reset, divide-by-2, enable)
 - Output: ~20 lines, ~50 tokens
 
-**volo_lut_pkg** - Look-up table utilities
+**forge_lut_pkg** - Look-up table utilities
 - P1 tests: 4 (constants, conversions, index, boundary)
 - Output: ~15 lines, ~70 tokens
 
@@ -48,8 +48,7 @@ docs/               # Testing standards, guides, patterns
 **Details:** .migration/VOLTAGE_TYPE_SYSTEM_DESIGN.md, .migration/voltage_types_reference.py
 
 **fsm_observer** - Export FSM state to Moku registers (no tests yet)
-**volo_voltage_pkg** - Voltage conversion utilities (⚠️ legacy, use forge_voltage_* instead)
-**volo_bram_loader** - BRAM initialization (no tests yet)
+**forge_bram_loader** - BRAM initialization (no tests yet)
 
 ## Testing (NEW!)
 

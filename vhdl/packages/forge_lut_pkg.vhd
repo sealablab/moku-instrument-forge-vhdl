@@ -1,5 +1,5 @@
 --------------------------------------------------------------------------------
--- Package: volo_lut_pkg
+-- Package: forge_lut_pkg
 -- Purpose: Generic 0-100 indexed lookup table infrastructure for Moku platform
 -- Author: Claude Code (based on archived PercentLut_pkg concepts)
 -- Date: 2025-01-28
@@ -18,7 +18,7 @@
 -- ✓ 7-bit index type (perfect hardware fit)
 -- ✓ Runtime bounds checking with saturation
 -- ✓ Verilog-portable design (no records in ports)
--- ✓ Integration with volo_voltage_pkg
+-- ✓ Integration with forge_voltage_*_pkg packages
 --
 -- TYPE SAFETY MODEL:
 -- • Subtypes provide naming clarity and documentation
@@ -41,7 +41,7 @@
 -- WHEN TO USE THIS PACKAGE:
 --   1. Is mapping linear? → Use Moku_Pct_pkg (zero overhead)
 --   2. Is mapping simple formula (e.g., x^2)? → Use custom function
---   3. Is mapping complex/empirical? → Use volo_lut_pkg ✓
+--   3. Is mapping complex/empirical? → Use forge_lut_pkg ✓
 --
 -- MEMORY OVERHEAD:
 --   Each LUT: 101 entries × 16-bit = 202 bytes block RAM
@@ -52,10 +52,12 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
--- Import voltage conversion utilities
-use work.volo_voltage_pkg.all;
+-- Note: If using voltage conversion utilities, import appropriate domain package:
+-- use work.forge_voltage_3v3_pkg.all;       -- For 0-3.3V domain
+-- use work.forge_voltage_5v0_pkg.all;       -- For 0-5.0V domain
+-- use work.forge_voltage_5v_bipolar_pkg.all; -- For ±5.0V domain
 
-package volo_lut_pkg is
+package forge_lut_pkg is
 
     -- =========================================================================
     -- TYPE DEFINITIONS
@@ -142,9 +144,9 @@ package volo_lut_pkg is
     -- Linear 0-3.3V LUT (common logic level)
     constant LINEAR_3V3_LUT : lut_101x16_signed_t;
 
-end package volo_lut_pkg;
+end package forge_lut_pkg;
 
-package body volo_lut_pkg is
+package body forge_lut_pkg is
 
     -- =========================================================================
     -- CORE LOOKUP FUNCTIONS IMPLEMENTATION
@@ -296,4 +298,4 @@ package body volo_lut_pkg is
     constant LINEAR_3V3_LUT : lut_101x16_signed_t :=
         create_linear_voltage_lut(0.0, 3.3);
 
-end package body volo_lut_pkg;
+end package body forge_lut_pkg;

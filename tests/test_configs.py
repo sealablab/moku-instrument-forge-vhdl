@@ -56,15 +56,14 @@ TESTS_CONFIG = {
 
     # === Packages ===
 
-    "volo_lut_pkg": TestConfig(
-        name="volo_lut_pkg",
+    "forge_lut_pkg": TestConfig(
+        name="forge_lut_pkg",
         sources=[
-            VHDL_PKG / "volo_voltage_pkg.vhd",          # Dependency
-            VHDL_PKG / "volo_lut_pkg.vhd",              # LUT package
-            TESTS / "volo_lut_pkg_tb_wrapper.vhd",      # Testbench wrapper
+            VHDL_PKG / "forge_lut_pkg.vhd",              # LUT package
+            TESTS / "forge_lut_pkg_tb_wrapper.vhd",      # Testbench wrapper
         ],
-        toplevel="volo_lut_pkg_tb_wrapper",
-        test_module="test_volo_lut_pkg_progressive",
+        toplevel="forge_lut_pkg_tb_wrapper",
+        test_module="test_forge_lut_pkg_progressive",
         category="packages",
     ),
 
@@ -102,11 +101,10 @@ TESTS_CONFIG = {
     ),
 
     # Note: Additional components that can have tests added:
-    # - volo_voltage_threshold_trigger_core (utilities)
+    # - forge_voltage_threshold_trigger_core (utilities)
     # - fsm_observer (debugging)
-    # - volo_bram_loader (loaders)
-    # - volo_voltage_pkg (packages - needs redesign first)
-    # - volo_common_pkg (packages)
+    # - forge_bram_loader (loaders)
+    # - forge_common_pkg (packages)
 }
 
 

@@ -1,10 +1,10 @@
 --------------------------------------------------------------------------------
--- Test Wrapper for volo_lut_pkg
--- Purpose: Provides entity for CocotB testing of volo_lut_pkg functions
+-- Test Wrapper for forge_lut_pkg
+-- Purpose: Provides entity for CocotB testing of forge_lut_pkg functions
 -- Author: Claude Code
 -- Date: 2025-01-28
 --
--- This wrapper exposes volo_lut_pkg functions through entity ports so CocotB
+-- This wrapper exposes forge_lut_pkg functions through entity ports so CocotB
 -- can test the LUT infrastructure. Since packages contain only functions,
 -- this wrapper provides combinational logic to exercise all package features.
 --------------------------------------------------------------------------------
@@ -13,10 +13,10 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
-use work.volo_voltage_pkg.all;
-use work.volo_lut_pkg.all;
+-- Note: volo_voltage_pkg.vhd removed - use forge_voltage_*_pkg instead if needed
+use work.forge_lut_pkg.all;
 
-entity volo_lut_pkg_tb_wrapper is
+entity forge_lut_pkg_tb_wrapper is
     port (
         -- Control signals
         clk           : in  std_logic;
@@ -42,9 +42,9 @@ entity volo_lut_pkg_tb_wrapper is
         linear_5v_lut_out      : out signed(15 downto 0);
         linear_3v3_lut_out     : out signed(15 downto 0)
     );
-end entity volo_lut_pkg_tb_wrapper;
+end entity forge_lut_pkg_tb_wrapper;
 
-architecture rtl of volo_lut_pkg_tb_wrapper is
+architecture rtl of forge_lut_pkg_tb_wrapper is
 
     -- Test LUT: Linear 0-5V for validation (0x0000 to 0xFFFF)
     constant TEST_LUT_UNSIGNED : lut_101x16_t := (

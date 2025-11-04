@@ -1,5 +1,5 @@
 --------------------------------------------------------------------------------
--- File: volo_bram_loader.vhd
+-- File: forge_bram_loader.vhd
 -- Author: Volo Team
 -- Created: 2025-01-25
 --
@@ -41,10 +41,9 @@ use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
 
 library WORK;
-use WORK.volo_common_pkg.all;
-use WORK.volo_voltage_pkg.all;
+use WORK.forge_common_pkg.all;
 
-entity volo_bram_loader is
+entity forge_bram_loader is
     port (
         -- Clock and Reset
         Clk       : in  std_logic;
@@ -68,9 +67,9 @@ entity volo_bram_loader is
         -- Debug Output (FSM Observer)
         voltage_debug_out : out signed(15 downto 0)  -- Oscilloscope debug voltage
     );
-end entity volo_bram_loader;
+end entity forge_bram_loader;
 
-architecture rtl of volo_bram_loader is
+architecture rtl of forge_bram_loader is
 
     -- FSM States (use std_logic_vector for Verilog portability)
     constant IDLE    : std_logic_vector(1 downto 0) := "00";

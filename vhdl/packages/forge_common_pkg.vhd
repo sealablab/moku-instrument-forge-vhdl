@@ -1,5 +1,5 @@
 --------------------------------------------------------------------------------
--- File: volo_common_pkg.vhd
+-- File: forge_common_pkg.vhd
 -- Author: Volo Team
 -- Created: 2025-01-25
 --
@@ -29,7 +29,7 @@ library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
 
-package volo_common_pkg is
+package forge_common_pkg is
 
     ----------------------------------------------------------------------------
     -- VOLO_READY Control Scheme (CR0[31:29])
@@ -53,7 +53,7 @@ package volo_common_pkg is
     -- Address width: 12 bits (2^12 = 4096 bytes / 4 bytes per word = 1024 words)
     -- Data width: 32 bits (matches Control Register width)
     --
-    -- The volo_bram_loader FSM uses Control10-Control14 to stream data
+    -- The forge_bram_loader FSM uses Control10-Control14 to stream data
     -- into the 4KB BRAM buffer during deployment initialization.
     ----------------------------------------------------------------------------
     constant BRAM_ADDR_WIDTH : natural := 12;  -- 4KB addressing
@@ -83,9 +83,9 @@ package volo_common_pkg is
         loader_done : std_logic
     ) return std_logic;
 
-end package volo_common_pkg;
+end package forge_common_pkg;
 
-package body volo_common_pkg is
+package body forge_common_pkg is
 
     -- Combine all 4 ready conditions for global enable
     function combine_volo_ready(
@@ -98,4 +98,4 @@ package body volo_common_pkg is
         return volo_ready and user_enable and clk_enable and loader_done;
     end function;
 
-end package body volo_common_pkg;
+end package body forge_common_pkg;

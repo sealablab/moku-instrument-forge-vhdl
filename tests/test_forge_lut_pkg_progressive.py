@@ -1,5 +1,5 @@
 """
-Progressive CocotB tests for volo_lut_pkg
+Progressive CocotB tests for forge_lut_pkg
 
 Test Levels:
 - P1_BASIC: Essential functionality only (~4 tests, <20 lines output)
@@ -16,7 +16,7 @@ from cocotb.clock import Clock
 import os
 
 # Import test utilities and constants
-from volo_lut_pkg_tests.volo_lut_pkg_constants import (
+from forge_lut_pkg_tests.forge_lut_pkg_constants import (
     TEST_INDEX_MIN, TEST_INDEX_MAX, TEST_INDEX_MID,
     TEST_INDEX_OVERFLOW, TEST_INDEX_WAY_OVER,
     EXPECTED_LUT_UNSIGNED, EXPECTED_LUT_SIGNED,

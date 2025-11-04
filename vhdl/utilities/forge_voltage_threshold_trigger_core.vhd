@@ -1,5 +1,5 @@
 --------------------------------------------------------------------------------
--- File: volo_voltage_threshold_trigger_core.vhd
+-- File: forge_voltage_threshold_trigger_core.vhd
 -- Description: Voltage Threshold Trigger with Hysteresis
 --
 -- Features:
@@ -28,7 +28,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
-entity volo_voltage_threshold_trigger_core is
+entity forge_voltage_threshold_trigger_core is
     port (
         -- Clock and control
         clk              : in  std_logic;
@@ -50,9 +50,9 @@ entity volo_voltage_threshold_trigger_core is
         above_threshold  : out std_logic;  -- Level indicator
         crossing_count   : out unsigned(15 downto 0)  -- Count threshold crossings
     );
-end entity volo_voltage_threshold_trigger_core;
+end entity forge_voltage_threshold_trigger_core;
 
-architecture rtl of volo_voltage_threshold_trigger_core is
+architecture rtl of forge_voltage_threshold_trigger_core is
 
     signal above_high : std_logic;
     signal below_low  : std_logic;

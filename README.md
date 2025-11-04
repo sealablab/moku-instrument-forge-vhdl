@@ -26,16 +26,18 @@ See `CLAUDE.md` for comprehensive CocoTB progressive testing standards and VHDL 
 moku-instrument-forge-vhdl/
 ├── vhdl/
 │   ├── packages/           # VHDL packages
-│   │   ├── volo_common_pkg.vhd
-│   │   ├── volo_lut_pkg.vhd
-│   │   └── volo_voltage_pkg.vhd
+│   │   ├── forge_common_pkg.vhd
+│   │   ├── forge_lut_pkg.vhd
+│   │   ├── forge_voltage_3v3_pkg.vhd
+│   │   ├── forge_voltage_5v0_pkg.vhd
+│   │   └── forge_voltage_5v_bipolar_pkg.vhd
 │   ├── debugging/          # Debug utilities
 │   │   └── fsm_observer.vhd
 │   ├── loader/             # Data loading utilities
-│   │   └── volo_bram_loader.vhd
+│   │   └── forge_bram_loader.vhd
 │   └── utilities/          # Generic utilities
-│       ├── volo_clk_divider.vhd
-│       └── volo_voltage_threshold_trigger_core.vhd
+│       ├── forge_util_clk_divider.vhd
+│       └── forge_voltage_threshold_trigger_core.vhd
 ├── tests/                  # CocotB tests for utilities
 └── README.md
 ```
@@ -62,9 +64,8 @@ git submodule update --init --recursive
 - **forge_voltage_5v_bipolar_pkg** - ±5.0V bipolar (Moku DAC/ADC, AC signals)
 
 **Utility Packages:**
-- **volo_common_pkg** - Common types and constants for Moku development
-- **volo_lut_pkg** - Look-up table utilities (with CocoTB tests)
-- **volo_voltage_pkg** - Legacy voltage utilities (superseded by forge_voltage_* packages)
+- **forge_common_pkg** - Common types and constants for Moku development
+- **forge_lut_pkg** - Look-up table utilities (with CocoTB tests)
 
 ### Debugging
 
@@ -75,12 +76,12 @@ git submodule update --init --recursive
 
 ### Loader
 
-**volo_bram_loader** - BRAM initialization from external sources
+**forge_bram_loader** - BRAM initialization from external sources
 
 ### Utilities
 
 **forge_util_clk_divider** - Programmable clock divider (with CocoTB tests)
-**volo_voltage_threshold_trigger_core** - Voltage threshold detection
+**forge_voltage_threshold_trigger_core** - Voltage threshold detection
 
 ## Development
 
