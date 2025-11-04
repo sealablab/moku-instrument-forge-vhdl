@@ -7,6 +7,244 @@ Use this as a quick lookup when writing new tests.
 
 ---
 
+## 0. CocoTB Interface Type Rules (CRITICAL) ⚠️
+
+**READ THIS FIRST:** CocoTB has strict limitations on what VHDL types it can access through entity ports.
+
+### Rule 1: Supported vs Unsupported Port Types
+
+| Type | CocoTB Access | Use Case | Python Access Pattern |
+|------|---------------|----------|----------------------|
+| ✅ `std_logic` | **YES** | Single-bit signals | `int(dut.signal.value)` |
+| ✅ `std_logic_vector` | **YES** | Unsigned multi-bit | `int(dut.signal.value)` |
+| ✅ `unsigned` | **YES** | Unsigned integers | `int(dut.signal.value)` |
+| ✅ `signed` | **YES** | Signed integers | `int(dut.signal.value.signed_integer)` |
+| ❌ `real` | **NO** | Floating-point | ⛔ **ERROR: "contains no child object"** |
+| ❌ `integer` | **PARTIAL** | Integer type | ⚠️ Use `signed` instead for reliability |
+| ❌ `boolean` | **NO** | True/False | ⛔ **ERROR: "contains no child object"** |
+| ❌ `time` | **NO** | Timing values | ⛔ Not accessible |
+| ❌ `file` | **NO** | File handles | ⛔ Not accessible |
+| ❌ Custom records | **NO** | Composite types | ⛔ Use separate signals |
+
+### Rule 2: Signal Access Patterns
+
+```python
+# ✅ CORRECT: Accessing different types
+
+# std_logic (single bit)
+enable = int(dut.enable.value)  # Returns 0 or 1
+
+# std_logic_vector / unsigned
+data = int(dut.data.value)  # Returns unsigned integer
+
+# signed (IMPORTANT: Use .signed_integer)
+voltage = int(dut.voltage.value.signed_integer)  # Returns signed integer
+
+# ❌ WRONG: Trying to access real or boolean
+voltage = float(dut.voltage_real.value)  # ERROR: "contains no child object"
+flag = bool(dut.is_valid.value)          # ERROR: "contains no child object"
+```
+
+### Rule 3: Test Wrapper Pattern for Packages
+
+When testing packages that use `real` or `boolean` internally, you MUST use digital types at the entity boundary.
+
+**❌ WRONG - CocoTB Cannot Access This:**
+
+```vhdl
+entity voltage_pkg_tb_wrapper is
+    port (
+        test_voltage : in real;              -- ❌ ERROR!
+        test_digital : in signed(15 downto 0);
+
+        digital_result : out signed(15 downto 0);
+        voltage_result : out real;           -- ❌ ERROR!
+        is_valid_result : out boolean;       -- ❌ ERROR!
+        clamped_voltage : out real           -- ❌ ERROR!
+    );
+end entity;
+
+architecture rtl of voltage_pkg_tb_wrapper is
+begin
+    -- This won't work with CocoTB!
+    digital_result <= to_digital(test_voltage);
+    voltage_result <= from_digital(test_digital);
+    is_valid_result <= is_valid(test_voltage);
+end architecture;
+```
+
+**✅ CORRECT - Use Digital Types with Registered Outputs:**
+
+```vhdl
+entity voltage_pkg_tb_wrapper is
+    port (
+        clk : in std_logic;
+        reset : in std_logic;
+
+        -- All inputs use digital types
+        test_voltage_digital : in signed(15 downto 0);  -- ✅ Scaled voltage
+        test_digital : in signed(15 downto 0);
+
+        -- Function selects (one-hot)
+        sel_to_digital : in std_logic;
+        sel_from_digital : in std_logic;
+        sel_is_valid : in std_logic;
+        sel_clamp : in std_logic;
+
+        -- All outputs use digital types (registered)
+        digital_result : out signed(15 downto 0);       -- ✅ Works!
+        voltage_result : out signed(15 downto 0);       -- ✅ Scaled voltage
+        is_valid_result : out std_logic;                -- ✅ Boolean as std_logic
+        clamped_result : out signed(15 downto 0)        -- ✅ Scaled voltage
+    );
+end entity;
+
+architecture rtl of voltage_pkg_tb_wrapper is
+    -- Internal real values for package functions
+    signal voltage_real : real;
+    signal voltage_out_real : real;
+    signal clamped_real : real;
+begin
+    -- Convert digital input to real for package functions
+    voltage_real <= from_digital(test_voltage_digital);
+
+    -- Registered outputs prevent timing issues
+    process(clk, reset)
+    begin
+        if reset = '1' then
+            digital_result <= (others => '0');
+            voltage_result <= (others => '0');
+            is_valid_result <= '0';
+            clamped_result <= (others => '0');
+
+        elsif rising_edge(clk) then
+            -- Test to_digital function
+            if sel_to_digital = '1' then
+                digital_result <= to_digital(voltage_real);
+            end if;
+
+            -- Test from_digital function (convert back to digital for output)
+            if sel_from_digital = '1' then
+                voltage_out_real <= from_digital(test_digital);
+                voltage_result <= to_digital(voltage_out_real);
+            end if;
+
+            -- Test is_valid (convert boolean to std_logic)
+            if sel_is_valid = '1' then
+                if is_valid(voltage_real) then
+                    is_valid_result <= '1';
+                else
+                    is_valid_result <= '0';
+                end if;
+            end if;
+
+            -- Test clamp function
+            if sel_clamp = '1' then
+                clamped_real <= clamp(voltage_real);
+                clamped_result <= to_digital(clamped_real);
+            end if;
+        end if;
+    end process;
+end architecture;
+```
+
+### Rule 4: Python Test Pattern
+
+```python
+import cocotb
+from cocotb.triggers import RisingEdge
+from conftest import setup_clock, reset_active_high
+
+@cocotb.test()
+async def test_voltage_package(dut):
+    # Start clock
+    await setup_clock(dut)
+    await reset_active_high(dut)
+
+    # Test to_digital: 2.5V in 0-5V range
+    # Scale: 2.5V → (2.5/5.0) * 32767 = 16383
+    dut.test_voltage_digital.value = 16383
+    dut.sel_to_digital.value = 1
+
+    await RisingEdge(dut.clk)
+    await RisingEdge(dut.clk)  # Wait for registration
+
+    # ✅ CORRECT: Access signed output
+    result = int(dut.digital_result.value.signed_integer)
+    assert result == 16383, f"Expected 16383, got {result}"
+
+    # Test is_valid: Check 3.3V (should be invalid for 0-5V range? Or valid?)
+    # Depends on package implementation
+    dut.test_voltage_digital.value = 21626  # 3.3V scaled
+    dut.sel_to_digital.value = 0
+    dut.sel_is_valid.value = 1
+
+    await RisingEdge(dut.clk)
+    await RisingEdge(dut.clk)
+
+    # ✅ CORRECT: Access std_logic output (boolean → std_logic)
+    is_valid = int(dut.is_valid_result.value)
+    assert is_valid in [0, 1], f"Expected 0 or 1, got {is_valid}"
+```
+
+### Rule 5: Type Conversion Helpers
+
+For packages that work with `real` types internally, add scaling helper functions:
+
+```vhdl
+-- In your package
+package voltage_helpers_pkg is
+    -- Convert digital (signed 16-bit) to voltage
+    function digital_to_voltage(dig : signed) return real;
+
+    -- Convert voltage to digital (signed 16-bit)
+    function voltage_to_digital(volt : real) return signed;
+end package;
+
+package body voltage_helpers_pkg is
+    function digital_to_voltage(dig : signed) return real is
+        constant V_MIN : real := 0.0;
+        constant V_MAX : real := 5.0;
+    begin
+        return V_MIN + (real(to_integer(dig)) / 32767.0) * (V_MAX - V_MIN);
+    end function;
+
+    function voltage_to_digital(volt : real) return signed is
+        constant V_MIN : real := 0.0;
+        constant V_MAX : real := 5.0;
+        variable scaled : integer;
+    begin
+        scaled := integer((volt - V_MIN) / (V_MAX - V_MIN) * 32767.0);
+        return to_signed(scaled, 16);
+    end function;
+end package body;
+```
+
+### Why These Rules Matter
+
+1. **CocoTB uses VPI/VHPI** - These simulator interfaces have limited type support
+2. **`real` and `boolean` are not synthesizable** - They're simulation-only types
+3. **Hardware works with bits** - Digital types match actual hardware behavior
+4. **Consistency** - Using digital types everywhere prevents interface mismatches
+
+### Quick Checklist
+
+Before creating a test wrapper:
+- [ ] All entity ports use only: `std_logic`, `std_logic_vector`, `signed`, `unsigned`
+- [ ] No `real`, `boolean`, `time`, `integer`, or custom record types in ports
+- [ ] If package uses `real` internally, convert at wrapper boundary
+- [ ] If package returns `boolean`, convert to `std_logic` (0/1) at wrapper boundary
+- [ ] All outputs are registered (use `process(clk)` for timing stability)
+- [ ] Python tests use correct access patterns (`.signed_integer` for signed types)
+
+### See Also
+
+- **Complete Example:** `tests/volo_lut_pkg_tb_wrapper.vhd` (correct pattern, no real types)
+- **Section 5:** Signal persistence between tests
+- **Section 9:** Test wrapper design patterns
+
+---
+
 ## 1. Progressive Test Class Structure
 
 **Pattern:** Inherit from TestBase and implement progressive run methods

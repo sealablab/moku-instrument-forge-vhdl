@@ -68,6 +68,39 @@ TESTS_CONFIG = {
         category="packages",
     ),
 
+    "forge_voltage_3v3_pkg": TestConfig(
+        name="forge_voltage_3v3_pkg",
+        sources=[
+            VHDL_PKG / "forge_voltage_3v3_pkg.vhd",
+            TESTS / "forge_voltage_3v3_pkg_tb_wrapper.vhd",
+        ],
+        toplevel="forge_voltage_3v3_pkg_tb_wrapper",
+        test_module="test_forge_voltage_3v3_pkg_progressive",
+        category="packages",
+    ),
+
+    "forge_voltage_5v0_pkg": TestConfig(
+        name="forge_voltage_5v0_pkg",
+        sources=[
+            VHDL_PKG / "forge_voltage_5v0_pkg.vhd",
+            TESTS / "forge_voltage_5v0_pkg_tb_wrapper.vhd",
+        ],
+        toplevel="forge_voltage_5v0_pkg_tb_wrapper",
+        test_module="test_forge_voltage_5v0_pkg_progressive",
+        category="packages",
+    ),
+
+    "forge_voltage_5v_bipolar_pkg": TestConfig(
+        name="forge_voltage_5v_bipolar_pkg",
+        sources=[
+            VHDL_PKG / "forge_voltage_5v_bipolar_pkg.vhd",
+            TESTS / "forge_voltage_5v_bipolar_pkg_tb_wrapper.vhd",
+        ],
+        toplevel="forge_voltage_5v_bipolar_pkg_tb_wrapper",
+        test_module="test_forge_voltage_5v_bipolar_pkg_progressive",
+        category="packages",
+    ),
+
     # Note: Additional components that can have tests added:
     # - volo_voltage_threshold_trigger_core (utilities)
     # - fsm_observer (debugging)

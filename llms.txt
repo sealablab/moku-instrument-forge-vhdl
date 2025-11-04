@@ -71,13 +71,54 @@ uv sync                          # Install dependencies
 uv run python tests/run.py --all # Run all tests (P1)
 ```
 
-## For More Details
+## Testing Quick Start
 
-See CLAUDE.md for testing standards, component patterns, design rationale.
-See docs/ for comprehensive testing guides.
+```bash
+# Run P1 tests (default, LLM-optimized, <20 lines output)
+uv run python tests/run.py forge_util_clk_divider
+
+# Run P2 tests (comprehensive validation)
+TEST_LEVEL=P2_INTERMEDIATE uv run python tests/run.py forge_util_clk_divider
+
+# Run with more verbosity
+COCOTB_VERBOSITY=NORMAL uv run python tests/run.py forge_util_clk_divider
+
+# List all available tests
+uv run python tests/run.py --list
+
+# Run all tests (P1)
+uv run python tests/run.py --all
+```
+
+## Documentation Hierarchy
+
+**Three-tier documentation system optimized for token efficiency:**
+
+**Tier 1 (Quick Ref):** This file (llms.txt) - ~500 tokens
+- Component catalog
+- Basic usage examples
+- Pointers to Tier 2
+
+**Tier 2 (Authoritative):** CLAUDE.md - ~3.5k tokens
+- Complete testing standards
+- CocoTB progressive testing guide
+- Critical interface rules (real/boolean type constraints)
+- VHDL coding standards summary
+- Component integration patterns
+- Quick reference appendix
+
+**Tier 3 (Specialized):** Load only when needed
+- `docs/VHDL_CODING_STANDARDS.md` - Complete style guide (rarely loaded)
+- `docs/COCOTB_TROUBLESHOOTING.md` - Problem→Solution debugging
+- `scripts/GHDL_FILTER.md` - Filter implementation details
+
+**Navigation pattern:**
+- Quick question? → Read llms.txt (this file)
+- Design/testing question? → Read CLAUDE.md
+- Specific error/deep dive? → Read Tier 3 docs
 
 ---
 
-**Version:** 1.1.0 (added CocoTB testing)
+**Version:** 2.0.0 (aligned with parent monorepo 3-tier pattern)
 **License:** MIT
-**Origin:** Extracted from EZ-EMFI project
+**Standalone:** Yes (works outside monorepo)

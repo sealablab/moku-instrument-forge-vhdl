@@ -97,6 +97,101 @@ Default to silence. Escalate consciously. Preserve context religiously.
 
 ---
 
+## CocoTB Progressive Testing Standard
+
+### The Golden Rule
+
+> **"If your P1 test output exceeds 20 lines, you're doing it wrong."**
+
+Default to silence. Escalate consciously. Preserve context religiously.
+
+### Test Structure (Mandatory)
+
+**Directory Organization:**
+```
+tests/
+├── test_base.py                          # Base class (DO NOT MODIFY)
+├── <module_name>_tests/                  # Per-module directory (REQUIRED)
+│   ├── <module_name>_constants.py        # Shared constants (REQUIRED)
+│   ├── P1_<module_name>_basic.py         # Minimal tests (REQUIRED)
+│   ├── P2_<module_name>_intermediate.py  # Standard tests (OPTIONAL)
+│   ├── P3_<module_name>_comprehensive.py # Full tests (OPTIONAL)
+│   └── P4_<module_name>_exhaustive.py    # Debug tests (OPTIONAL)
+└── run.py                                 # Test runner (AUTO-OPTIMIZED)
+```
+
+### P1 - Basic Tests (Required Template)
+
+```python
+import cocotb
+from conftest import setup_clock, reset_active_low
+from test_base import TestBase
+from <module>_tests.<module>_constants import *
+
+class ModuleTests(TestBase):
+    def __init__(self, dut):
+        super().__init__(dut, MODULE_NAME)
+
+    async def run_p1_basic(self):
+        # 3-5 ESSENTIAL tests only
+        await self.test("Reset", self.test_reset)
+        await self.test("Basic operation", self.test_basic_op)
+        await self.test("Enable control", self.test_enable)
+
+@cocotb.test()
+async def test_module_p1(dut):
+    tester = ModuleTests(dut)
+    await tester.run_all_tests()
+```
+
+### Constants File (Required)
+
+```python
+# <module>_tests/<module>_constants.py
+from pathlib import Path
+
+MODULE_NAME = "<module>"
+HDL_SOURCES = [Path("../vhdl/<category>/<module>.vhd")]
+HDL_TOPLEVEL = "<entity_name>"  # lowercase!
+
+class TestValues:
+    P1_MAX_VALUES = [10, 15, 20]      # SMALL for speed
+    P2_MAX_VALUES = [100, 255, 1000]  # Realistic
+```
+
+### Execution Commands
+
+```bash
+# Default (LLM-optimized, P1 only)
+uv run python tests/run.py <module>
+
+# P2 (comprehensive validation)
+TEST_LEVEL=P2_INTERMEDIATE uv run python tests/run.py <module>
+
+# With more verbosity
+COCOTB_VERBOSITY=NORMAL uv run python tests/run.py <module>
+
+# List all tests
+uv run python tests/run.py --list
+```
+
+### Critical Rules
+
+**DO:**
+- Start with P1 (get basics working first)
+- Use small test values in P1 (10, not 10000)
+- Keep P1 under 10 tests
+- Inherit from TestBase for verbosity control
+- Use conftest utilities (setup_clock, reset_active_low)
+
+**DON'T:**
+- Create monolithic tests (use progressive levels)
+- Use large values in P1 (keep it fast)
+- Print debug info by default (use self.log())
+- Modify test_base.py (it's the framework)
+
+---
+
 ## Component Naming Convention
 
 ### Pattern
@@ -183,6 +278,82 @@ entity forge_util_example is
     );
 end entity;
 ```
+
+---
+
+## Critical CocoTB Interface Rules
+
+### Rule 1: CocoTB Type Constraints ⚠️
+
+**CocoTB CANNOT access these types through entity ports:**
+- ❌ `real`, `boolean`, `time`, `file`, custom records
+
+**CocoTB CAN access:**
+- ✅ `signed`, `unsigned`, `std_logic_vector`, `std_logic`
+
+**Error message if violated:**
+```
+AttributeError: 'HierarchyObject' object has no attribute 'value'
+"contains no child object"
+```
+
+### Rule 2: Test Wrapper Pattern
+
+When testing packages with `real` or `boolean` types:
+
+**❌ WRONG:**
+```vhdl
+entity wrapper is
+    port (
+        test_voltage : in real;        -- CocoTB can't access!
+        is_valid : out boolean         -- CocoTB can't access!
+    );
+end entity;
+```
+
+**✅ CORRECT:**
+```vhdl
+entity wrapper is
+    port (
+        clk : in std_logic;
+        test_voltage_digital : in signed(15 downto 0);  -- Scaled
+        sel_test : in std_logic;                        -- Function select
+        digital_result : out signed(15 downto 0);       -- Scaled output
+        is_valid : out std_logic                        -- 0/1, not boolean
+    );
+end entity;
+
+architecture rtl of wrapper is
+    signal voltage_real : real;  -- Internal conversion
+begin
+    voltage_real <= (real(to_integer(test_voltage_digital)) / 32767.0) * V_MAX;
+
+    process(clk)
+    begin
+        if rising_edge(clk) then
+            if sel_test = '1' then
+                digital_result <= to_digital(voltage_real);
+                is_valid <= '1' when is_valid_fn(voltage_real) else '0';
+            end if;
+        end if;
+    end process;
+end architecture;
+```
+
+### Rule 3: Python Signal Access
+
+```python
+# std_logic_vector / unsigned
+data = int(dut.data.value)
+
+# signed (IMPORTANT: Use .signed_integer)
+voltage = int(dut.voltage.value.signed_integer)
+
+# std_logic
+enable = int(dut.enable.value)  # Returns 0 or 1
+```
+
+**Complete guide:** See `docs/COCOTB_TROUBLESHOOTING.md` Section 0
 
 ---
 
@@ -468,21 +639,104 @@ end architecture;
 
 ---
 
+## Appendix: VHDL Quick Reference
+
+### Port Order Template
+
+```vhdl
+entity forge_module_example is
+    port (
+        -- 1. Clock & Reset
+        clk    : in std_logic;
+        rst_n  : in std_logic;  -- Active-low
+
+        -- 2. Control
+        clk_en : in std_logic;
+        enable : in std_logic;
+
+        -- 3. Data inputs
+        data_in : in std_logic_vector(15 downto 0);
+
+        -- 4. Data outputs
+        data_out : out std_logic_vector(15 downto 0);
+
+        -- 5. Status
+        busy  : out std_logic
+    );
+end entity;
+```
+
+### FSM State Declaration
+
+```vhdl
+-- ✅ ALWAYS use std_logic_vector (NOT enums!)
+constant STATE_IDLE   : std_logic_vector(1 downto 0) := "00";
+constant STATE_ARMED  : std_logic_vector(1 downto 0) := "01";
+constant STATE_FIRING : std_logic_vector(1 downto 0) := "10";
+
+signal state, next_state : std_logic_vector(1 downto 0);
+```
+
+### Signal Naming Prefixes
+
+| Prefix | Purpose | Example |
+|--------|---------|---------|
+| `ctrl_` | Control signals | `ctrl_enable`, `ctrl_arm` |
+| `cfg_` | Configuration | `cfg_threshold`, `cfg_mode` |
+| `stat_` | Status outputs | `stat_busy`, `stat_fault` |
+| `dbg_` | Debug outputs | `dbg_state_voltage` |
+| `_n` | Active-low | `rst_n`, `enable_n` |
+| `_next` | Next-state | `state_next` |
+
+### Clocked Process Template
+
+```vhdl
+process(clk, rst_n)
+begin
+    if rst_n = '0' then
+        output <= (others => '0');
+        state  <= STATE_IDLE;
+
+    elsif rising_edge(clk) then
+        if clk_en = '1' then
+            if enable = '1' then
+                output <= input;
+                state  <= next_state;
+            end if;
+        end if;
+    end if;
+end process;
+```
+
+**Hierarchy:** rst_n > clk_en > enable
+
+---
+
 ## Related Documentation
 
-### In forge-vhdl
-- `docs/VOLO_COCOTB_TESTING_STANDARD.md` - Authoritative testing rules
-- `docs/PROGRESSIVE_TESTING_GUIDE.md` - Step-by-step test creation
-- `docs/GHDL_OUTPUT_FILTER.md` - How the filter works
-- `docs/COCOTB_PATTERNS.md` - Quick reference patterns
-- `docs/VHDL_COCOTB_LESSONS_LEARNED.md` - Common pitfalls
+**Documentation Hierarchy:**
+- **Tier 1 (Quick Ref):** `llms.txt` - Component catalog, basic usage
+- **Tier 2 (Authoritative):** `CLAUDE.md` (this file) - Complete design & testing guide
+- **Tier 3 (Specialized):** Load only when needed
 
-### In Monorepo
-- `docs/migration/FORGE_VHDL_PLAN.md` - Migration plan
-- `.claude/shared/ARCHITECTURE_OVERVIEW.md` - Hierarchical architecture
+### Tier 3: Specialized References
+
+**In `docs/`:**
+- `VHDL_CODING_STANDARDS.md` - Complete style guide (600 lines, reference material)
+- `COCOTB_TROUBLESHOOTING.md` - Problem→Solution debugging guide
+
+**In `scripts/`:**
+- `GHDL_FILTER.md` - Filter implementation details (for debugging filter)
+
+**In parent monorepo:**
+- `../../.claude/shared/ARCHITECTURE_OVERVIEW.md` - Hierarchical architecture
+- `../../docs/migration/FORGE_VHDL_PLAN.md` - Migration plan
+
+**Historical archive:**
+- `docs/archive/` - Consolidated documentation (for reference only)
 
 ---
 
 **Last Updated:** 2025-11-04
 **Maintainer:** Moku Instrument Forge Team
-**Version:** 1.0.0
+**Version:** 2.0.0

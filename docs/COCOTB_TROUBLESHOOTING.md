@@ -1,16 +1,64 @@
-# VHDL + CocotB Lessons Learned
+# CocoTB Troubleshooting Guide
 
-**Date**: 2025-01-28
-**Context**: volo_lut_pkg test development session
-**Audience**: Future agents and human developers
+**Problem→Solution Format for VHDL + CocoTB Testing**
+
+**Audience:** Developers and AI agents debugging test failures
 
 ## Overview
 
-This document captures critical lessons learned while developing and debugging VHDL packages with CocotB tests. These lessons prevent common pitfalls and save hours of debugging time.
+This document captures critical lessons learned while developing and debugging VHDL packages with CocoTB tests. These lessons prevent common pitfalls and save hours of debugging time.
+
+**Format:** Each section follows Problem → Error → Solution → Why pattern.
 
 ---
 
 ## 🔴 Critical Issues (Must Fix First)
+
+### 0. CocoTB Interface Type Constraints ⚠️
+
+**Problem**: CocoTB CANNOT access `real`, `boolean`, `time`, `file`, or custom record types through entity ports.
+
+**Error Message**:
+```
+AttributeError: 'HierarchyObject' object has no attribute 'value' OR
+"contains no child object"
+```
+
+**Impact**: Any test wrapper using these types in entity ports will FAIL at runtime.
+
+**Solution**: Use only digital types at entity boundary:
+- ✅ `signed`, `unsigned`, `std_logic_vector`, `std_logic`
+- ❌ `real`, `boolean`, `time`, `integer`, `file`, custom records
+
+**Complete Guide**: See `docs/COCOTB_PATTERNS.md` Section 0 for:
+- Full type support matrix
+- Correct wrapper patterns
+- Python access patterns
+- Working examples
+
+**Quick Fix Pattern**:
+```vhdl
+-- ❌ WRONG
+entity my_wrapper is
+    port (
+        test_voltage : in real;           -- CocoTB can't access!
+        is_valid : out boolean            -- CocoTB can't access!
+    );
+end entity;
+
+-- ✅ CORRECT
+entity my_wrapper is
+    port (
+        clk : in std_logic;
+        test_voltage_digital : in signed(15 downto 0);  -- Scaled voltage
+        is_valid : out std_logic                        -- 0/1 instead of boolean
+    );
+end entity;
+```
+
+**Why This Is Critical**: This is THE most common CocoTB failure mode. Fix this FIRST before debugging anything else.
+
+---
 
 ### 1. Function Overloading with Subtypes
 
@@ -489,31 +537,31 @@ Before committing VHDL + CocotB code:
 ## 📚 Reference Examples
 
 **Good Examples in This Project**:
-- `tests/test_volo_clk_divider_progressive.py` - Clean progressive structure
-- `tests/test_volo_lut_pkg_progressive.py` - Package testing pattern
-- `tests/volo_lut_pkg_tb_wrapper.vhd` - Minimal wrapper design
+- `tests/test_forge_util_clk_divider_progressive.py` - Clean progressive structure
+- `tests/volo_lut_pkg_tb_wrapper.vhd` - Minimal wrapper design (correct pattern)
+- `tests/forge_voltage_*_tb_wrapper.vhd` - Interface type rules applied
 
 **Key Documentation**:
-- `tests/README.md` - CocotB framework guide
-- `docs/PROGRESSIVE_TESTING_GUIDE.md` - P1/P2/P3 philosophy
-- `VOLO_LUT_PKG_TESTING.md` - Complete testing workflow
+- `CLAUDE.md` - Complete testing standards and patterns
+- `VHDL_CODING_STANDARDS.md` - Complete style guide
+- `scripts/GHDL_FILTER.md` - Filter implementation details
 
 ---
 
 ## 🎯 Summary: Top 5 Lessons
 
-1. **Subtypes ≠ Type Safety**: VHDL subtypes don't prevent assignment. Use base types in function signatures.
+1. **CocoTB Type Constraints**: Use only digital types (`signed`, `unsigned`, `std_logic`) at entity ports. Never `real` or `boolean`.
 
-2. **Type Your Literals**: Always use `x"HHHH"` for std_logic_vector, `to_signed()` for signed.
+2. **Subtypes ≠ Type Safety**: VHDL subtypes don't prevent assignment. Use base types in function signatures.
 
-3. **Match Arithmetic**: Python test data must use SAME formulas as VHDL (watch rounding!).
+3. **Type Your Literals**: Always use `x"HHHH"` for std_logic_vector, `to_signed()` for signed.
 
-4. **Reset Between Tests**: Clear all control signals before each test to avoid stale outputs.
+4. **Match Arithmetic**: Python test data must use SAME formulas as VHDL (watch rounding!).
 
-5. **Generate, Don't Type**: Use Python scripts to generate LUT constants and expected test values.
+5. **Reset Between Tests**: Clear all control signals before each test to avoid stale outputs.
 
 ---
 
-**Last Updated**: 2025-01-28
-**Tested With**: GHDL 5.0.1, CocotB 2.0.0, Python 3.10
-**Session Context**: 106,388 tokens remaining after fixes
+**Last Updated**: 2025-11-04
+**Tested With**: GHDL 5.0+, CocoTB 2.0+, Python 3.10+
+**Version**: 2.0 (aligned with forge-vhdl 3-tier documentation)
