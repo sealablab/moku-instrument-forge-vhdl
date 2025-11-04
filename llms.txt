@@ -1,0 +1,61 @@
+# moku-instrument-forge-vhdl
+
+Shared VHDL utilities for Moku custom instrument development.
+
+## Quick Reference
+
+**What:** Reusable VHDL components (packages, debugging tools, loaders, utilities)
+**Use:** Git submodule in forge-based projects
+**Test:** CocotB + pytest (`pytest tests/`)
+
+## Structure
+
+```
+vhdl/
+├── packages/       # volo_common_pkg, volo_voltage_pkg, volo_lut_pkg
+├── debugging/      # fsm_observer (real-time FSM state monitoring)
+├── loader/         # volo_bram_loader (BRAM initialization)
+└── utilities/      # volo_clk_divider, volo_voltage_threshold_trigger_core
+tests/              # CocotB tests
+```
+
+## Key Components
+
+**fsm_observer.vhd** - Export FSM state to Moku registers for oscilloscope debugging
+**volo_voltage_pkg.vhd** - Voltage conversion and scaling utilities
+**volo_bram_loader.vhd** - BRAM initialization from external sources
+**volo_clk_divider.vhd** - Programmable clock divider
+
+## Integration Pattern
+
+Used as submodule in `moku-instrument-forge-mono-repo`:
+
+```bash
+git submodule add https://github.com/sealablab/moku-instrument-forge-vhdl.git libs/forge-vhdl
+```
+
+VHDL files compiled with GHDL via CocotB test infrastructure.
+
+## Development
+
+```bash
+uv sync              # Install dependencies
+pytest               # Run all tests
+pytest tests/test_volo_voltage_pkg.py  # Run specific test
+```
+
+## Related Projects
+
+- **moku-instrument-forge** - Code generation (YAML → VHDL)
+- **moku-instrument-forge-mono-repo** - Monorepo for probe drivers
+- **moku-models** - Platform data models
+
+## For More Details
+
+See README.md for complete documentation.
+
+---
+
+**Version:** 1.0.0
+**License:** MIT
+**Origin:** Extracted from EZ-EMFI project
