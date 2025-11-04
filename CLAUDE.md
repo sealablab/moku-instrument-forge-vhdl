@@ -379,17 +379,35 @@ enable = int(dut.enable.value)  # Returns 0 or 1
 - Dependencies: volo_voltage_pkg
 - File: `vhdl/packages/volo_lut_pkg.vhd`
 
-**volo_voltage_pkg** (⚠️ Being replaced, see Phase 4)
-- Function: Voltage conversion utilities
-- Current: Hardcoded ±5V (legacy)
-- Replacement: 3 explicit packages (forge_voltage_*_pkg.vhd)
-  - `forge_voltage_3v3_pkg` - 0-3.3V unipolar (TTL/digital)
-  - `forge_voltage_5v0_pkg` - 0-5.0V unipolar (supply)
-  - `forge_voltage_5v_bipolar_pkg` - ±5.0V bipolar (Moku DAC/ADC)
-- Design: See `docs/migration/VOLTAGE_TYPE_SYSTEM_DESIGN.md`
-- Python mirror: See `docs/migration/voltage_types_reference.py`
-- Tests: Will be added in Phase 4
-- File: `vhdl/packages/volo_voltage_pkg.vhd` (legacy)
+**forge_voltage_3v3_pkg**
+- Function: 0-3.3V unipolar voltage domain utilities
+- Domain: TTL/digital logic, GPIO, 3.3V probe interfaces
+- Tests: 4 P1, 2 P2
+- Use case: Digital voltage levels, TTL trigger thresholds
+- File: `vhdl/packages/forge_voltage_3v3_pkg.vhd`
+
+**forge_voltage_5v0_pkg**
+- Function: 0-5.0V unipolar voltage domain utilities
+- Domain: Sensor supply, unipolar analog signals
+- Tests: 4 P1, 2 P2
+- Use case: 0-5V DAC outputs, sensor power control
+- File: `vhdl/packages/forge_voltage_5v0_pkg.vhd`
+
+**forge_voltage_5v_bipolar_pkg**
+- Function: ±5.0V bipolar voltage domain utilities
+- Domain: Moku DAC/ADC, AC signals (default choice for analog work)
+- Tests: 4 P1, 2 P2
+- Use case: Moku platform interfaces, AC signal generation/measurement
+- File: `vhdl/packages/forge_voltage_5v_bipolar_pkg.vhd`
+
+**Design philosophy:** Explicit package selection enforces voltage domain boundaries. Function-based type safety (Verilog-compatible).
+**Complete design doc:** `.migration/VOLTAGE_TYPE_SYSTEM_DESIGN.md`
+**Python mirror:** `.migration/voltage_types_reference.py`
+
+**volo_voltage_pkg** (⚠️ Legacy - use forge_voltage_* packages instead)
+- Function: Hardcoded ±5V voltage conversion utilities
+- Status: Superseded by explicit domain packages above
+- File: `vhdl/packages/volo_voltage_pkg.vhd` (kept for backward compatibility)
 
 **volo_common_pkg**
 - Function: Common constants and types

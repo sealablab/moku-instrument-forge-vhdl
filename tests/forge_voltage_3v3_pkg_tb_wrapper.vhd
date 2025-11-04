@@ -68,9 +68,8 @@ begin
 
             -- Test from_digital function (convert back to digital for output)
             if sel_from_digital = '1' then
-                voltage_out_real <= from_digital(test_digital);
-                -- Convert real back to digital for CocoTB access
-                voltage_result <= to_signed(integer((voltage_out_real / 3.3) * 32767.0), 16);
+                -- Direct conversion (no intermediate signal to avoid delta cycle issues)
+                voltage_result <= to_signed(integer((from_digital(test_digital) / 3.3) * 32767.0), 16);
             end if;
 
             -- Test is_valid (convert boolean to std_logic for CocoTB)
@@ -84,9 +83,8 @@ begin
 
             -- Test clamp function
             if sel_clamp = '1' then
-                clamped_real <= clamp(voltage_real);
-                -- Convert real back to digital for CocoTB access
-                clamped_result <= to_signed(integer((clamped_real / 3.3) * 32767.0), 16);
+                -- Direct conversion (no intermediate signal to avoid delta cycle issues)
+                clamped_result <= to_signed(integer((clamp(voltage_real) / 3.3) * 32767.0), 16);
             end if;
         end if;
     end process;

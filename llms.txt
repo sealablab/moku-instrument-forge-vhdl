@@ -12,7 +12,7 @@ Shared VHDL utilities for Moku custom instrument development with CocoTB progres
 
 ```
 vhdl/
-├── packages/       # volo_lut_pkg (+ tests), volo_voltage_pkg, volo_common_pkg
+├── packages/       # forge_voltage_*_pkg (+ tests), volo_lut_pkg (+ tests), volo_common_pkg
 ├── utilities/      # forge_util_clk_divider (+ tests), threshold trigger
 ├── debugging/      # fsm_observer (real-time FSM monitoring)
 └── loader/         # volo_bram_loader (BRAM initialization)
@@ -32,14 +32,24 @@ docs/               # Testing standards, guides, patterns
 - P1 tests: 4 (constants, conversions, index, boundary)
 - Output: ~15 lines, ~70 tokens
 
-**fsm_observer** - Export FSM state to Moku registers (no tests yet)
-**volo_voltage_pkg** - Voltage conversion utilities (legacy, being replaced)
-**volo_bram_loader** - BRAM initialization (no tests yet)
+**forge_voltage_3v3_pkg** - 0-3.3V voltage domain (TTL/digital logic)
+- P1 tests: 4 (to_digital, from_digital, is_valid, clamp)
+- Output: ~9 lines
 
-**Voltage Type System (Phase 4 - Design finalized)**
-- forge_voltage_3v3_pkg (0-3.3V), forge_voltage_5v0_pkg (0-5V), forge_voltage_5v_bipolar_pkg (±5V)
-- Function-based type safety, Verilog compatible, Python mirror classes
-- See: docs/migration/VOLTAGE_TYPE_SYSTEM_DESIGN.md
+**forge_voltage_5v0_pkg** - 0-5.0V voltage domain (unipolar supply)
+- P1 tests: 4 (same as above)
+- Output: ~9 lines
+
+**forge_voltage_5v_bipolar_pkg** - ±5.0V voltage domain (Moku DAC/ADC)
+- P1 tests: 4 (same as above)
+- Output: ~9 lines
+
+**Design:** Function-based type safety, Verilog compatible, explicit domain selection
+**Details:** .migration/VOLTAGE_TYPE_SYSTEM_DESIGN.md, .migration/voltage_types_reference.py
+
+**fsm_observer** - Export FSM state to Moku registers (no tests yet)
+**volo_voltage_pkg** - Voltage conversion utilities (⚠️ legacy, use forge_voltage_* instead)
+**volo_bram_loader** - BRAM initialization (no tests yet)
 
 ## Testing (NEW!)
 
